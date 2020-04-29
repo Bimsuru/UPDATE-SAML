@@ -152,7 +152,7 @@ class OneLogin_Saml2_Utils
 
             if ($debug) {
                 foreach ($xmlErrors as $error) {
-                    echo esc_html($error->message."\n");
+                    echo  esc_attr($error)->message."\n");
                 }
             }
 
@@ -494,11 +494,11 @@ class OneLogin_Saml2_Utils
         if (self::$_host) {
             $currentHost = self::$_host;
         } elseif (self::getProxyVars() && array_key_exists('HTTP_X_FORWARDED_HOST', $_SERVER)) {
-            $currentHost = sanitize_text_field(wp_unslash($_SERVER['HTTP_X_FORWARDED_HOST']));
+            $currentHost = $_SERVER['HTTP_X_FORWARDED_HOST'];
         } elseif (array_key_exists('HTTP_HOST', $_SERVER)) {
-            $currentHost = sanitize_text_field(wp_unslash($_SERVER['HTTP_HOST']));
+            $currentHost = $_SERVER['HTTP_HOST'];
         } elseif (array_key_exists('SERVER_NAME', $_SERVER)) {
-            $currentHost = sanitize_text_field(wp_unslash($_SERVER['SERVER_NAME']));
+            $currentHost = $_SERVER['SERVER_NAME'];
         } else {
             if (function_exists('gethostname')) {
                 $currentHost = gethostname();
@@ -536,7 +536,7 @@ class OneLogin_Saml2_Utils
         } elseif (self::getSelfPort() == 443) {
             $protocol = 'https';
         } elseif (self::getProxyVars() && isset($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
-            $protocol = sanitize_text_field(wp_unslash($_SERVER['HTTP_X_FORWARDED_PROTO']));
+            $protocol = $_SERVER['HTTP_X_FORWARDED_PROTO'];
         } elseif (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
             $protocol = 'https';
         }
@@ -569,9 +569,9 @@ class OneLogin_Saml2_Utils
         if (self::$_port) {
             $portnumber = self::$_port;
         } else if (self::getProxyVars() && isset($_SERVER["HTTP_X_FORWARDED_PORT"])) {
-            $portnumber = sanitize_text_field(wp_unslash($_SERVER["HTTP_X_FORWARDED_PORT"]));
+            $portnumber = $_SERVER["HTTP_X_FORWARDED_PORT"];
         } else if (isset($_SERVER["SERVER_PORT"])) {
-            $portnumber = sanitize_text_field(wp_unslash($_SERVER["SERVER_PORT"]));
+            $portnumber = $_SERVER["SERVER_PORT"];
         } else {
             $currentHost = self::getRawHost();
 
@@ -605,16 +605,15 @@ class OneLogin_Saml2_Utils
     {
         $selfURLNoQuery = self::getSelfURLhost();
 
-        if(isset( $_SERVER['SCRIPT_NAME'])){
-        $infoWithBaseURLPath = self::buildWithBaseURLPath(sanitize_text_field(wp_unslash($_SERVER['SCRIPT_NAME'])));
-        }if (!empty($infoWithBaseURLPath)) {
+        $infoWithBaseURLPath = self::buildWithBaseURLPath($_SERVER['SCRIPT_NAME']);
+        if (!empty($infoWithBaseURLPath)) {
             $selfURLNoQuery .= $infoWithBaseURLPath;
         } else {
-            $selfURLNoQuery .= sanitize_text_field(wp_unslash($_SERVER['SCRIPT_NAME']));
+            $selfURLNoQuery .= $_SERVER['SCRIPT_NAME'];
         }
 
         if (isset($_SERVER['PATH_INFO'])) {
-            $selfURLNoQuery .= sanitize_text_field(wp_unslash($_SERVER['PATH_INFO']));
+            $selfURLNoQuery .= $_SERVER['PATH_INFO'];
         }
 
         return $selfURLNoQuery;
@@ -631,9 +630,9 @@ class OneLogin_Saml2_Utils
         $route = '';
 
         if (!empty($_SERVER['REQUEST_URI'])) {
-            $route = sanitize_text_field(wp_unslash($_SERVER['REQUEST_URI']));
+            $route = $_SERVER['REQUEST_URI'];
             if (!empty($_SERVER['QUERY_STRING'])) {
-                $route = self::strLreplace(sanitize_text_field(wp_unslash($_SERVER['QUERY_STRING'], '', $route)));
+                $route = self::strLreplace($_SERVER['QUERY_STRING'], '', $route);
                 if (substr($route, -1) == '?') {
                     $route = substr($route, 0, -1);
                 }
@@ -677,7 +676,7 @@ class OneLogin_Saml2_Utils
 
         $requestURI = '';
         if (!empty($_SERVER['REQUEST_URI'])) {
-            $requestURI = sanitize_text_field(wp_unslash($_SERVER['REQUEST_URI']));
+            $requestURI = $_SERVER['REQUEST_URI'];
             if ($requestURI[0] !== '/' && preg_match('#^https?://[^/]*(/.*)#i', $requestURI, $matches)) {
                 $requestURI = $matches[1];
             }
@@ -724,10 +723,8 @@ class OneLogin_Saml2_Utils
      */
     public static function extractOriginalQueryParam($name)
     {
-        if(isset($_SERVER['QUERY_STRING'])){
-        $index = strpos(sanitize_text_field(wp_unslash($_SERVER['QUERY_STRING'], $name.'=')));
-        $substring = substr(sanitize_text_field(wp_unslash($_SERVER['QUERY_STRING'], $index + strlen($name) + 1)));
-        }
+        $index = strpos($_SERVER['QUERY_STRING'], $name.'=');
+        $substring = substr($_SERVER['QUERY_STRING'], $index + strlen($name) + 1);
         $end = strpos($substring, '&');
         return $end ? substr($substring, 0, strpos($substring, '&')) : $substring;
     }
