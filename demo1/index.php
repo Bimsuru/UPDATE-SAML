@@ -70,7 +70,7 @@ if (isset($_GET['sso'])) {
     $errors = $auth->getErrors();
 
     if (!empty($errors)) {
-        echo '<p>',implode(', ', $errors),'</p>';
+        echo '<p>',esc_attr(', ', $errors),'</p>';
     }
 
     if (!$auth->isAuthenticated()) {
